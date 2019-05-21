@@ -1,0 +1,51 @@
+%h1= @allocation.name
+
+= form_for @allocation, url: ynab_allocation_path(@allocation) do |f|
+  .form-group.row
+    = f.label :name, class: 'col-sm-2 col-form-label'
+    .col-sm-10
+      = f.text_field :name, class: 'form-control'
+
+      .form-group.row
+        %p.col-12
+          %small.text-muted Base this allocation on amount spent, or amount budgeted?
+
+        .col-6
+          = f.radio_button :allocate_from, 'activity'
+          = f.label :name, 'Spent Amount'
+        .col-6
+          = f.radio_button :allocate_from, 'budgeted'
+          = f.label :name, 'Budgeted Amount'
+
+      = f.submit
+  .row
+    .col-6
+      %h3 This Allocation
+
+      .form-group
+        = label_tag(:new_allocation_category, "New Category")
+        = text_field_tag(:new_allocation_category, "", id: "new_allocation_category")
+        %button.btn.btn-sm.btn-primary.allocation-category--add Add
+
+      #allocation
+
+
+    .col-6
+      %h3 YNAB Categories
+      #ynab.accordion
+        - current_user.category_groups.includes(categories: :spendings).each_with_index do |category_group, index|
+          .card.mb-1
+            .card-header.m-0.p-0{ id: "ynab-header-#{category_group.id}" }
+              %h5.m-0
+                %button.btn.btn-link{ type: "button", "data-toggle" => "collapse", "data-target" => "#ynab-cg-#{category_group.id}", "aria-expanded" => "true", "aria-controls" => "#ynab-cg-#{category_group.id}" }
+                  = category_group.name
+            .collapse{ id: "ynab-cg-#{category_group.id}", class: (index < 3) ? "show" : "", "aria-labelledby" => "ynab-header-#{category_group.id}", "data-parent" => "#ynab" }
+              .card-body
+                %ul.categories.m-0.p-0.budget--area.list-group{id: "example-#{category_group.id}"}
+                  - category_group.categories.each do |category|
+                    %li.category.card.p-2.list-group-item
+                      = category.name
+                      %span.badge.badge-success.badge-pill.float-right.budget--amount{ "data-amount" => ynab_amount(category.recent_spending.for(@allocation.allocate_from), current_user.budget) }
+                        = ynab_currency(category.recent_spending.for(@allocation.allocate_from), current_user.budget)
+
+  = f.submit

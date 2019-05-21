@@ -1,0 +1,38 @@
+!!!
+%html
+  %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+    %title Minafi App
+    = csrf_meta_tags
+    = csp_meta_tag
+    = stylesheet_link_tag    'application', media: 'all'
+    = javascript_include_tag 'application'
+  %body
+    .container.mt-3
+      .row
+        .col-9
+          - flash.each do |key, value|
+            = content_tag :div, value, class: bootstrap_flash_class_for(key)
+
+          = yield
+        .col-3
+          %h2 Your Allocations
+          %ul.list-group
+            - current_user.allocations.order(:name).each do |allocation|
+              = link_to allocation.name, edit_ynab_allocation_path(allocation), class: 'list-group-item list-group-item-action'
+
+          .card.mt-3.p-3
+            = form_for Ynab::Allocation.new, url: ynab_allocations_path do |f|
+              .form-group
+                = f.label :name, 'New Allocation Name'
+                = f.text_field :name, class: 'form-control'
+              .form-group
+                %p
+                  %small.text-muted Base this allocation on amount spent, or amount budgeted?
+                = f.label :name, 'Spent Amount'
+                = f.radio_button :allocate_from, 'activity', :checked => true
+                %br
+                = f.label :name, 'Budgeted Amount'
+                = f.radio_button :allocate_from, 'budgeted', :checked => true
+
+              = f.submit 'Start New Allocation', class: 'btn btn-block btn-primary mt-3'

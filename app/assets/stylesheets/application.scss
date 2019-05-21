@@ -1,0 +1,10 @@
+@import "bootstrap";
+@import "dragula";
+
+
+.category {
+  cursor: move;
+  &:hover {
+    background-color: #f6f6f6;
+  }
+}
